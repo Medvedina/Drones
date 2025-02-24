@@ -3,6 +3,7 @@ from PIL import Image
 import pyautogui
 import threading
 import time
+import ctypes
 
 test_dict = []
 test_dict.append(dict(id=1, name='Cetus X', description = 'Ахуенный вообщем дрон, летает заебато и камера классная.', type='Ебический', 
@@ -10,20 +11,35 @@ test_dict.append(dict(id=1, name='Cetus X', description = 'Ахуенный во
 test_dict.append(dict(id=2, name='Shepus XXL', description = 'Хуйня, не работает', type='Жирокоптер', 
                  characteristics = dict(speed = '0', size = 'infinite'), img = Image.open('Images/shepiy.jpg')))
 print(test_dict)
+
+def get_scale_factor():
+    try:
+        hdc = ctypes.windll.user32.GetDC(0)
+        dpi_x = ctypes.windll.gdi32.GetDeviceCaps(hdc, 88)
+        scale_factor = dpi_x / 96
+        ctypes.windll.user32.ReleaseDC(0, hdc)
+        print(scale_factor)
+        return scale_factor
+
+    except Exception as e:
+        raise e
+
 class MainWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
-
+        self.scale_factor = get_scale_factor()
         ctk.set_appearance_mode('dark')
-        #self.width, self.height = pyautogui.size()
+        self.width, self.height = pyautogui.size()
         self.state('zoomed')
         self.title('DroneGuide')
-        self.geometry(f"{1920}x{1080}")
+        self.geometry(f"{self.width}x{self.height}")
+        ctk.set_widget_scaling(1 / self.scale_factor)
+        ctk.set_window_scaling(1 / self.scale_factor)
         self.resizable(width=True, height=True)
 
         self.filter_flag = False
         self.checkbox_list = []
-        self.drones_linst = []
+        self.drones_list = []
 
         self.menu_frame = List_Frame(self, title="Квудрокуптеры")
         self.menu_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
